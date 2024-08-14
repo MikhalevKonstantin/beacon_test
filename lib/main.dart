@@ -1,14 +1,18 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'dart:math';
-import 'package:intl/intl.dart';
+
+import 'package:beacon_test/beacon_testing.dart';
 import 'package:beacons_plugin/beacons_plugin.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
+  // runApp(MyApp());
+  runApp(BeaconTesting());
 }
 
 class MyApp extends StatefulWidget {
@@ -18,7 +22,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  new FlutterLocalNotificationsPlugin();
+      new FlutterLocalNotificationsPlugin();
 
   String _tag = "Beacons Plugin";
   String _beaconResult = 'Not Scanned Yet.';
@@ -30,7 +34,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
 
   final StreamController<String> beaconEventsController =
-  StreamController<String>.broadcast();
+      StreamController<String>.broadcast();
 
   @override
   void initState() {
@@ -39,14 +43,56 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     initPlatformState();
 
     // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
-    // var initializationSettingsAndroid =
-    // new AndroidInitializationSettings('app_icon');
-    // var initializationSettingsIOS =
-    // IOSInitializationSettings(onDidReceiveLocalNotification: null);
-    // var initializationSettings = InitializationSettings(
-    //     android: initializationSettingsAndroid, iOS: initializationSettingsIOS);
-    // flutterLocalNotificationsPlugin.initialize(initializationSettings,
-    //     onSelectNotification: null);
+    var initializationSettingsAndroid =
+        new AndroidInitializationSettings('app_icon');
+    final DarwinInitializationSettings initializationSettingsDarwin =
+        DarwinInitializationSettings(
+            onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+    final InitializationSettings initializationSettings =
+        InitializationSettings(
+            android: initializationSettingsAndroid,
+            iOS: initializationSettingsDarwin);
+    flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onDidReceiveNotificationResponse: onDidReceiveNotificationResponse);
+  }
+
+  void onDidReceiveLocalNotification(
+      int id, String? title, String? body, String? payload) async {
+    // display a dialog with the notification details, tap ok to go to another page
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => CupertinoAlertDialog(
+        title: Text(title ?? ''),
+        content: Text(body ?? ''),
+        actions: [
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            child: Text('Ok'),
+            onPressed: () async {
+              Navigator.of(context, rootNavigator: true).pop();
+              // await Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) => SecondScreen(payload),
+              //   ),
+              // );
+            },
+          )
+        ],
+      ),
+    );
+  }
+
+  void onDidReceiveNotificationResponse(
+      NotificationResponse notificationResponse) async {
+    final String? payload = notificationResponse.payload;
+    if (notificationResponse.payload != null) {
+      debugPrint('notification payload: $payload');
+    }
+    // await Navigator.push(
+    //   context,
+    //   MaterialPageRoute<void>(builder: (context) => SecondScreen(payload)),
+    // );
   }
 
   @override
@@ -69,7 +115,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       await BeaconsPlugin.setDisclosureDialogMessage(
           title: "Background Locations",
           message:
-          "[This app] collects location data to enable [feature], [feature], & [feature] even when the app is closed or not in use");
+              "[This app] collects location data to enable [feature], [feature], & [feature] even when the app is closed or not in use");
 
       //Only in case, you want the dialog to be shown again. By Default, dialog will never be shown if permissions are granted.
       //await BeaconsPlugin.clearDisclosureDialogShowFlag(false);
@@ -90,6 +136,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         }
       });
     } else if (Platform.isIOS) {
+      BeaconsPlugin.listenToBeacons(beaconEventsController);
+      BeaconsPlugin.addRegion(
+          'MyBeacon1', '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6');
+      BeaconsPlugin.addRegion(
+          'MyBeacon2', '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA7');
       _showNotification("Beacons monitoring started..");
       await BeaconsPlugin.startMonitoring();
       setState(() {
@@ -100,9 +151,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     BeaconsPlugin.listenToBeacons(beaconEventsController);
 
     await BeaconsPlugin.addRegion(
-        "BeaconType1", "909c3cf9-fc5c-4841-b695-380958a51a5a");
+        "BeaconType1", "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6");
     await BeaconsPlugin.addRegion(
-        "BeaconType2", "6a84c716-0f2a-1ce9-f210-6a63bd873dd9");
+        "BeaconType2", "2F234454-CF6D-4A0F-ADF2-F4911BA9FFA7");
 
     BeaconsPlugin.addBeaconLayoutForAndroid(
         "m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25");
@@ -116,7 +167,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         backgroundScanPeriod: 2200, backgroundBetweenScanPeriod: 10);
 
     beaconEventsController.stream.listen(
-            (data) {
+        (data) {
           if (data.isNotEmpty && isRunning) {
             setState(() {
               _beaconResult = data;
@@ -156,14 +207,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             children: <Widget>[
               Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('Total Results: $_nrMessagesReceived',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: const Color(0xFF22369C),
-                          fontWeight: FontWeight.bold,
-                        )),
-                  )),
+                padding: const EdgeInsets.all(8.0),
+                child: Text('Total Results: $_nrMessagesReceived',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: const Color(0xFF22369C),
+                      fontWeight: FontWeight.bold,
+                    )),
+              )),
               Padding(
                 padding: const EdgeInsets.all(2.0),
                 child: ElevatedButton(
@@ -194,7 +245,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       });
                     },
                     child:
-                    Text("Clear Results", style: TextStyle(fontSize: 20)),
+                        Text("Clear Results", style: TextStyle(fontSize: 20)),
                   ),
                 ),
               ),
@@ -210,21 +261,22 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   void _showNotification(String subtitle) {
-  //   var rng = new Random();
-  //   Future.delayed(Duration(seconds: 5)).then((result) async {
-  //     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-  //         'your channel id', 'your channel name',
-  //         importance: Importance.high,
-  //         priority: Priority.high,
-  //         ticker: 'ticker');
-  //     var iOSPlatformChannelSpecifics = IOSNotificationDetails();
-  //     var platformChannelSpecifics = NotificationDetails(
-  //         android: androidPlatformChannelSpecifics,
-  //         iOS: iOSPlatformChannelSpecifics);
-  //     await flutterLocalNotificationsPlugin.show(
-  //         rng.nextInt(100000), _tag, subtitle, platformChannelSpecifics,
-  //         payload: 'item x');
-  //   });
+    var rng = new Random();
+    Future.delayed(Duration(seconds: 5)).then(
+      (result) async {
+        const AndroidNotificationDetails androidNotificationDetails =
+            AndroidNotificationDetails('your channel id', 'your channel name',
+                channelDescription: 'your channel description',
+                importance: Importance.max,
+                priority: Priority.high,
+                ticker: 'ticker');
+        const NotificationDetails notificationDetails =
+            NotificationDetails(android: androidNotificationDetails);
+        await flutterLocalNotificationsPlugin.show(
+            0, 'plain title', 'plain body', notificationDetails,
+            payload: 'item x');
+      },
+    );
   }
 
   Widget _buildResultsList() {
@@ -244,7 +296,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         itemBuilder: (context, index) {
           DateTime now = DateTime.now();
           String formattedDate =
-          DateFormat('yyyy-MM-dd – kk:mm:ss.SSS').format(now);
+              DateFormat('yyyy-MM-dd – kk:mm:ss.SSS').format(now);
           final item = ListTile(
               title: Text(
                 "Time: $formattedDate\n${_results[index]}",

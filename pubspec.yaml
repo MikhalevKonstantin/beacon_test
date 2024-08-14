@@ -37,7 +37,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   intl: ^0.17.0
   flutter_local_notifications: 17.2.2
-  beacons_plugin:
+  beacons_plugin: ^2.0.8
 
 dev_dependencies:
   flutter_test:
