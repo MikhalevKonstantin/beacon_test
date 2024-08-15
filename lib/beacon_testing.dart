@@ -44,7 +44,7 @@ class _BeaconTestingState extends State<BeaconTesting> {
       await BeaconsPlugin.setDisclosureDialogMessage(
           title: 'Background Locations',
           message: 'You have to enable the required permission');
-      await _requestBluetoothPermissions();
+      _requestBluetoothPermissions();
     }
 
     beaconEventsController.stream.listen(
@@ -84,7 +84,7 @@ class _BeaconTestingState extends State<BeaconTesting> {
         BeaconsPlugin.addRegion(
             'MyBeacon2', '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA7');
       }
-      if (Platform.isIOS) {
+      if (Platform.isIOS) { // for IOS you have to list all your uuid
         BeaconsPlugin.addRegionForIOS(
             '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6', 1, 1, 'MyBeacon1');
         BeaconsPlugin.addRegionForIOS(
