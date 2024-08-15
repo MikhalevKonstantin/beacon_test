@@ -38,6 +38,7 @@ dependencies:
   intl: ^0.17.0
   flutter_local_notifications: 17.2.2
   beacons_plugin: ^2.0.8
+  permission_handler:
 
 dev_dependencies:
   flutter_test:

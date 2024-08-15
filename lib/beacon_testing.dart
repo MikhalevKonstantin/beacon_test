@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 
 import 'package:beacons_plugin/beacons_plugin.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 class BeaconTesting extends StatefulWidget {
   // const BeaconTesting({Key key}) : super(key: key);
@@ -44,6 +46,7 @@ class _BeaconTestingState extends State<BeaconTesting> {
           title: 'Background Locations',
           message:
           'You have to enable the required permission');
+      await _requestBluetoothPermissions();
     }
 
     beaconEventsController.stream.listen(
@@ -61,7 +64,17 @@ class _BeaconTestingState extends State<BeaconTesting> {
           print("Error: $error");
         });
   }
-
+  Future<void> _requestBluetoothPermissions() async {
+    // Запрос разрешений для Android 12 и выше
+    if (await Permission.bluetoothScan.request().isGranted &&
+        await Permission.bluetoothConnect.request().isGranted &&
+        await Permission.bluetoothAdvertise.request().isGranted &&
+        await Permission.location.request().isGranted) {
+      print("Bluetooth and Location permissions granted");
+    } else {
+      print("Permissions denied");
+    }
+  }
   Future<void> runPlugin() async {
     if (isFirstTime) {
       BeaconsPlugin.listenToBeacons(beaconEventsController);
