@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:intl/intl.dart';
 
 import 'package:beacons_plugin/beacons_plugin.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 
 class BeaconTesting extends StatefulWidget {
   // const BeaconTesting({Key key}) : super(key: key);
@@ -24,7 +23,7 @@ class _BeaconTestingState extends State<BeaconTesting> {
   final ScrollController _scrollController = ScrollController();
 
   final StreamController<String> beaconEventsController =
-  StreamController<String>.broadcast();
+      StreamController<String>.broadcast();
 
   @override
   void initState() {
@@ -44,13 +43,12 @@ class _BeaconTestingState extends State<BeaconTesting> {
     if (Platform.isAndroid) {
       await BeaconsPlugin.setDisclosureDialogMessage(
           title: 'Background Locations',
-          message:
-          'You have to enable the required permission');
+          message: 'You have to enable the required permission');
       await _requestBluetoothPermissions();
     }
 
     beaconEventsController.stream.listen(
-            (data) {
+        (data) {
           if (data.isNotEmpty && isRunning) {
             setState(() {
               _beaconResult = data;
@@ -64,6 +62,7 @@ class _BeaconTestingState extends State<BeaconTesting> {
           print("Error: $error");
         });
   }
+
   Future<void> _requestBluetoothPermissions() async {
     // Запрос разрешений для Android 12 и выше
     if (await Permission.bluetoothScan.request().isGranted &&
@@ -75,17 +74,22 @@ class _BeaconTestingState extends State<BeaconTesting> {
       print("Permissions denied");
     }
   }
+
   Future<void> runPlugin() async {
     if (isFirstTime) {
       BeaconsPlugin.listenToBeacons(beaconEventsController);
-      BeaconsPlugin.addRegion(
-          'MyBeacon1', '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6');
-      BeaconsPlugin.addRegion(
-          'MyBeacon2', '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA7');
-      BeaconsPlugin.addRegionForIOS(
-        '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6',1, 1,'MyBeacon1',);
-      BeaconsPlugin.addRegionForIOS(
-        '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA7',1,2,'MyBeacon2', );
+      if (Platform.isAndroid) {
+        BeaconsPlugin.addRegion(
+            'MyBeacon1', '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6');
+        BeaconsPlugin.addRegion(
+            'MyBeacon2', '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA7');
+      }
+      if (Platform.isIOS) {
+        BeaconsPlugin.addRegionForIOS(
+            '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA6', 1, 1, 'MyBeacon1');
+        BeaconsPlugin.addRegionForIOS(
+            '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA7', 1, 2, 'MyBeacon2');
+      }
       isFirstTime = false;
     } else {
       BeaconsPlugin.listenToBeacons(beaconEventsController);
@@ -109,14 +113,14 @@ class _BeaconTestingState extends State<BeaconTesting> {
             children: <Widget>[
               Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text('Total Results: $_nrMessagesReceived',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: const Color(0xFF22369C),
-                          fontWeight: FontWeight.bold,
-                        )),
-                  )),
+                padding: const EdgeInsets.all(8.0),
+                child: Text('Total Results: $_nrMessagesReceived',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: const Color(0xFF22369C),
+                      fontWeight: FontWeight.bold,
+                    )),
+              )),
               Padding(
                 padding: const EdgeInsets.all(2.0),
                 child: ElevatedButton(
@@ -147,7 +151,7 @@ class _BeaconTestingState extends State<BeaconTesting> {
                       });
                     },
                     child:
-                    Text("Clear Results", style: TextStyle(fontSize: 20)),
+                        Text("Clear Results", style: TextStyle(fontSize: 20)),
                   ),
                 ),
               ),
@@ -178,7 +182,8 @@ class _BeaconTestingState extends State<BeaconTesting> {
         ),
         itemBuilder: (context, index) {
           DateTime now = DateTime.now();
-          String formattedDate = DateFormat('yyyy-MM-dd – kk:mm:ss.SSS').format(now);
+          String formattedDate =
+              DateFormat('yyyy-MM-dd – kk:mm:ss.SSS').format(now);
           final item = ListTile(
               title: Text(
                 "Time: $formattedDate\n${_results[index]}",
