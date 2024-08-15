@@ -75,7 +75,7 @@ class _BeaconTestingState extends State<BeaconTesting> {
     }
   }
 
-  Future<void> runPlugin() async {
+  runPlugin()  {
     if (isFirstTime) {
       BeaconsPlugin.listenToBeacons(beaconEventsController);
       if (Platform.isAndroid) {
@@ -131,7 +131,7 @@ class _BeaconTestingState extends State<BeaconTesting> {
                         isRunning = false;
                       });
                     } else {
-                      await runPlugin();
+                      runPlugin();
                       await BeaconsPlugin.startMonitoring();
                     }
                   },
