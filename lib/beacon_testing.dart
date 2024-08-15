@@ -90,7 +90,7 @@ class _BeaconTestingState extends State<BeaconTesting> {
         BeaconsPlugin.addRegionForIOS(
             '2F234454-CF6D-4A0F-ADF2-F4911BA9FFA7', 1, 2, 'MyBeacon2');
       }
-      isFirstTime = false;
+      // isFirstTime = false;
     } else {
       BeaconsPlugin.listenToBeacons(beaconEventsController);
     }
